@@ -17,6 +17,7 @@
         'Publish-SkyPSTest',
         'Publish-SNPlatformToolsDev',
         'Register-PSOpsCoreRepo',
+        'Remove-PSOpsCorePackage',
         'Test-PSOpsPrerequisites',
         'Update-GitRepos'
     )
