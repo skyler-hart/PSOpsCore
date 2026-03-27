@@ -122,20 +122,6 @@ Read a secret from 1Password:
 Get-PSOpsCoreSecret -Path 'op://Development/BaGet/apiKey'
 ```
 
-Publish a package to BaGet:
-
-```powershell
-Publish-PSOpsPackage -NupkgPath ./output/MyModule.1.0.0.nupkg
-```
-
-Override the source path directly:
-
-```powershell
-Publish-PSOpsPackage \
-    -NupkgPath ./output/MyModule.1.0.0.nupkg \
-    -SourceUrl 'https://baget.example.com/v3/index.json'
-```
-
 ## Development notes
 
 - Public functions live in `Public/`
@@ -159,3 +145,7 @@ Publish-PSOpsPackage \
 - Do not store secrets in the module manifest
 - Do not base64-encode secrets and pretend that counts as security
 - Use 1Password for local secret retrieval and GitHub secrets or another secret manager for CI/CD
+
+## Other notes
+
+- Modules on macOS get saved to: ~/.local/share/powershell/Modules
