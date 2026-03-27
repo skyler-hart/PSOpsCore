@@ -97,18 +97,18 @@ function Get-PSOpsDevFolder {
     # Create search paths by combining base paths with common names
     $searchPaths = @()
     
-    # Add base paths as-is (in case they are already development folders)
-    $searchPaths += $basePaths
-    
-    # Add combinations of base paths and common names
+    # First, add combinations of base paths and common names (more specific)
     foreach ($basePath in $basePaths) {
         foreach ($name in $commonNames) {
             $searchPaths += Join-Path $basePath $name
         }
     }
-
-    # Add custom paths
+    
+    # Add custom paths (high priority)
     $searchPaths += $CustomPaths
+    
+    # Finally, add base paths as fallback (less specific)
+    $searchPaths += $basePaths
 
     # Find the first existing directory
     foreach ($path in $searchPaths) {
