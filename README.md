@@ -45,7 +45,7 @@ op --version
 Using winget:
 
 ```powershell
-winget install 1Password.CLI
+winget install AgileBits.1Password.CLI
 ```
 
 Alternative install methods are available in the official docs:
