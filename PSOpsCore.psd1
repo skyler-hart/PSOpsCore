@@ -12,7 +12,8 @@
     FunctionsToExport = @(
         'Get-PSOpsCoreSecret',
         'Publish-PSOpsPackage',
-        'Test-PSOpsPrerequisites'
+        'Test-PSOpsPrerequisites',
+        'Update-GitRepos'
     )
 
     CmdletsToExport    = @()
