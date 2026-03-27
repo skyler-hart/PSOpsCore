@@ -1,14 +1,14 @@
-function Publish-SNPlatformToolsDev {
+function Publish-SkyPSTest {
     <#
     .SYNOPSIS
-        Publishes the SNPlatformTools-Dev module to a private PowerShell repository.
+        Publishes the SkyPSTest module to a private PowerShell repository.
 
     .DESCRIPTION
-        Automatically locates the SNPlatformTools-Dev module directory using Get-PSOpsDevFolder,
+        Automatically locates the SkyPSTest module directory using Get-PSOpsDevFolder,
         then publishes it to the configured private PowerShell repository using 1Password secrets.
 
     .PARAMETER ModuleName
-        The name of the module to publish. Default is 'SNPlatformToolsDev'.
+        The name of the module to publish. Default is 'SkyPSTest'.
 
     .PARAMETER ModulePath
         Optional custom path to the module directory. If not specified, uses Get-PSOpsDevFolder 
@@ -21,17 +21,17 @@ function Publish-SNPlatformToolsDev {
         The API key for publishing. If not specified, uses 1Password stored value.
 
     .EXAMPLE
-        Publish-SNPlatformToolsDev
+        Publish-SkyPSTest
         Publishes the module using automatically detected paths and 1Password secrets.
 
     .EXAMPLE
-        Publish-SNPlatformToolsDev -ModulePath '/custom/path/to/SNPlatformTools-Dev'
+        Publish-SkyPSTest -ModulePath '/custom/path/to/SkyPSTest'
         Publishes the module from a custom path.
     #>
     [CmdletBinding()]
     param (
         [Parameter()]
-        [string]$ModuleName = 'SNPlatformToolsDev',
+        [string]$ModuleName = 'SkyPSTest',
 
         [Parameter()]
         [string]$ModulePath,
@@ -58,11 +58,11 @@ function Publish-SNPlatformToolsDev {
                 throw "Could not locate development folder. Please specify -ModulePath parameter or ensure your development folder exists."
             }
             
-            $ModulePath = Join-Path $devFolder 'PreviousWork/Intact/SNPlatformTools-Dev'
+            $ModulePath = Join-Path $devFolder 'SkyPSTest'
         }
         
         if (-not (Test-Path $ModulePath)) {
-            throw "SNPlatformTools-Dev module not found at: $ModulePath"
+            throw "SkyPSTest module not found at: $ModulePath"
         }
         
         Write-Verbose "Using module path: $ModulePath"

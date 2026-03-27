@@ -75,13 +75,11 @@ function Register-PSOpsCoreRepo {
         
         # Get values from 1Password if not provided as parameters
         if (-not $Name) {
-            $script:RepoNameRef = 'op://DevOps/PSResource Repository - PKGS-H/repoName'
-            $Name = op read $script:RepoNameRef
+            $Name = Get-PSOpsCoreSecret -Path 'op://DevOps/PSResource Repository - PKGS-H/repoName'
         }
         
         if (-not $Uri) {
-            $script:RepoUriRef = 'op://DevOps/PSResource Repository - PKGS-H/repoUri'
-            $Uri = op read $script:RepoUriRef
+            $Uri = Get-PSOpsCoreSecret -Path 'op://DevOps/PSResource Repository - PKGS-H/repoUri'
         }
         
         $psresourceget = Get-Module -ListAvailable Microsoft.PowerShell.PSResourceGet

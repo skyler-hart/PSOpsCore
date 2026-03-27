@@ -62,22 +62,20 @@ if ($os -match "Unknown|Unsupported") {
 
 # Get values from 1Password if not provided as parameters
 if (-not $Name) {
-    $script:RepoNameRef = 'op://DevOps/PSResource Repository - PKGS-H/repoName'
     try {
-        $Name = op read $script:RepoNameRef
+        $Name = Get-PSOpsCoreSecret -Path 'op://DevOps/PSResource Repository - PKGS-H/repoName'
         Write-Verbose "Retrieved repository name from 1Password: $Name"
     } catch {
-        throw "Failed to retrieve repository name from 1Password. Ensure you're signed in to 1Password CLI and the secret exists at: $script:RepoNameRef"
+        throw "Failed to retrieve repository name from 1Password. Ensure you're signed in to 1Password CLI and the secret exists at: op://DevOps/PSResource Repository - PKGS-H/repoName"
     }
 }
 
 if (-not $Uri) {
-    $script:RepoUriRef = 'op://DevOps/PSResource Repository - PKGS-H/repoUri'
     try {
-        $Uri = op read $script:RepoUriRef
+        $Uri = Get-PSOpsCoreSecret -Path 'op://DevOps/PSResource Repository - PKGS-H/repoUri'
         Write-Verbose "Retrieved repository URI from 1Password: $Uri"
     } catch {
-        throw "Failed to retrieve repository URI from 1Password. Ensure you're signed in to 1Password CLI and the secret exists at: $script:RepoUriRef"
+        throw "Failed to retrieve repository URI from 1Password. Ensure you're signed in to 1Password CLI and the secret exists at: op://DevOps/PSResource Repository - PKGS-H/repoUri"
     }
 }
 

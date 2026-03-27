@@ -36,11 +36,8 @@ function Publish-PSOpsCore {
         
         Write-Verbose "Using module path: $ModulePath"
 
-        $script:RepoNameRef = 'op://DevOps/PSResource Repository - PKGS-H/repoName'
-        $script:ApiKeyRef   = 'op://DevOps/PSResource Repository - PKGS-H/password'
-
-        $name = op read $script:RepoNameRef
-        $key  = op read $script:ApiKeyRef
+        $name = Get-PSOpsCoreSecret -Path 'op://DevOps/PSResource Repository - PKGS-H/repoName'
+        $key  = Get-PSOpsCoreSecret -Path 'op://DevOps/PSResource Repository - PKGS-H/password'
 
         Publish-PSResource -Path $ModulePath -Repository $name -ApiKey $key
         Find-PSResource -Name PSOpsCore -Repository $name
