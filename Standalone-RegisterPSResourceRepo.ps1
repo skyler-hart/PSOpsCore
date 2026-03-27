@@ -87,18 +87,30 @@ if ($os -match "Unknown|Unsupported") {
 if (-not $Name) {
     try {
         $Name = Get-PSOpsCoreSecret -Path 'op://DevOps/PSResource Repository - PKGS-H/repoName'
+        if ([string]::IsNullOrWhiteSpace($Name)) {
+            throw "Repository name retrieved from 1Password is empty"
+        }
         Write-Verbose "Retrieved repository name from 1Password: $Name"
     } catch {
-        throw "Failed to retrieve repository name from 1Password. Ensure you're signed in to 1Password CLI and the secret exists at: op://DevOps/PSResource Repository - PKGS-H/repoName"
+        Write-Error "Failed to retrieve repository name from 1Password: $($_.Exception.Message)"
+        Write-Host "Please ensure you're signed in to 1Password CLI with 'op signin' and the secret exists at: op://DevOps/PSResource Repository - PKGS-H/repoName" -ForegroundColor Red
+        Write-Host "Alternatively, provide the -Name parameter directly." -ForegroundColor Yellow
+        exit 1
     }
 }
 
 if (-not $Uri) {
     try {
         $Uri = Get-PSOpsCoreSecret -Path 'op://DevOps/PSResource Repository - PKGS-H/repoUri'
+        if ([string]::IsNullOrWhiteSpace($Uri)) {
+            throw "Repository URI retrieved from 1Password is empty"
+        }
         Write-Verbose "Retrieved repository URI from 1Password: $Uri"
     } catch {
-        throw "Failed to retrieve repository URI from 1Password. Ensure you're signed in to 1Password CLI and the secret exists at: op://DevOps/PSResource Repository - PKGS-H/repoUri"
+        Write-Error "Failed to retrieve repository URI from 1Password: $($_.Exception.Message)"
+        Write-Host "Please ensure you're signed in to 1Password CLI with 'op signin' and the secret exists at: op://DevOps/PSResource Repository - PKGS-H/repoUri" -ForegroundColor Red
+        Write-Host "Alternatively, provide the -Uri parameter directly." -ForegroundColor Yellow
+        exit 1
     }
 }
 
