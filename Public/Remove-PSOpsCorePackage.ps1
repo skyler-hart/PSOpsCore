@@ -120,13 +120,13 @@ function Remove-PSOpsCorePackage {
                 'Content-Type' = 'application/json'
             }
 
-            # First, check if package exists and get version information
-            $packageInfoUri = "$baseUri/api/v1/packages/$PackageName/index.json"
+            # First, check if package exists using the correct BaGet registration API
+            $packageInfoUri = "$baseUri/v3/registration/$($PackageName.ToLower())/index.json"
             
-            Write-Host "Checking package existence..." -ForegroundColor Yellow
+            Write-Host "Checking package existence at: $packageInfoUri" -ForegroundColor Yellow
             
             try {
-                $packageInfo = Invoke-RestMethod -Uri $packageInfoUri -Method Get -Headers $headers -ErrorAction Stop
+                $packageInfo = Invoke-RestMethod -Uri $packageInfoUri -Method Get -ErrorAction Stop
             }
             catch {
                 if ($_.Exception.Response.StatusCode -eq 'NotFound') {
@@ -135,11 +135,22 @@ function Remove-PSOpsCorePackage {
                 throw "Failed to retrieve package information: $($_.Exception.Message)"
             }
 
-            # Determine versions to remove
+            # Determine versions to remove from BaGet registration response
             $versionsToRemove = if ($Version) {
                 @($Version)
             } else {
-                $packageInfo.versions | ForEach-Object { $_.version }
+                # Extract versions from BaGet registration API response
+                $allVersions = @()
+                if ($packageInfo.items) {
+                    foreach ($item in $packageInfo.items) {
+                        if ($item.items) {
+                            $allVersions += $item.items | ForEach-Object { $_.catalogEntry.version }
+                        }
+                    }
+                } elseif ($packageInfo.catalogEntry) {
+                    $allVersions += $packageInfo.catalogEntry.version
+                }
+                $allVersions | Sort-Object -Unique
             }
 
             if (-not $versionsToRemove -or $versionsToRemove.Count -eq 0) {
@@ -165,14 +176,16 @@ function Remove-PSOpsCorePackage {
 
             Write-Host $actionDescription -ForegroundColor Cyan
 
-            # Remove each version
+            # Remove each version using the correct BaGet delete API
             $results = @()
             foreach ($versionToRemove in $versionsToRemove) {
-                $deleteUri = "$baseUri/api/v1/packages/$PackageName/$versionToRemove"
+                # BaGet typically uses /api/v2/package/{id}/{version} for deletions
+                $deleteUri = "$baseUri/api/v2/package/$($PackageName.ToLower())/$versionToRemove"
                 
                 if ($PSCmdlet.ShouldProcess("$PackageName v$versionToRemove", "DELETE $deleteUri")) {
                     try {
                         Write-Host "Removing $PackageName v$versionToRemove..." -ForegroundColor Yellow
+                        Write-Verbose "DELETE endpoint: $deleteUri"
                         
                         $response = Invoke-RestMethod -Uri $deleteUri -Method Delete -Headers $headers -ErrorAction Stop
                         
@@ -186,14 +199,32 @@ function Remove-PSOpsCorePackage {
                         Write-Host "✓ Successfully removed $PackageName v$versionToRemove" -ForegroundColor Green
                     }
                     catch {
-                        $results += [PSCustomObject]@{
-                            PackageName = $PackageName
-                            Version = $versionToRemove
-                            Status = 'Failed'
-                            Message = $_.Exception.Message
-                        }
+                        # Try alternative delete endpoint if first one fails
+                        $alternateDeleteUri = "$baseUri/api/v1/packages/$($PackageName.ToLower())/$versionToRemove"
+                        Write-Verbose "Trying alternate DELETE endpoint: $alternateDeleteUri"
                         
-                        Write-Error "✗ Failed to remove $PackageName v$versionToRemove`: $($_.Exception.Message)"
+                        try {
+                            $response = Invoke-RestMethod -Uri $alternateDeleteUri -Method Delete -Headers $headers -ErrorAction Stop
+                            
+                            $results += [PSCustomObject]@{
+                                PackageName = $PackageName
+                                Version = $versionToRemove
+                                Status = 'Success'
+                                Message = "Package removed successfully (alternate endpoint)"
+                            }
+                            
+                            Write-Host "✓ Successfully removed $PackageName v$versionToRemove (alternate endpoint)" -ForegroundColor Green
+                        }
+                        catch {
+                            $results += [PSCustomObject]@{
+                                PackageName = $PackageName
+                                Version = $versionToRemove
+                                Status = 'Failed'
+                                Message = $_.Exception.Message
+                            }
+                            
+                            Write-Error "✗ Failed to remove $PackageName v$versionToRemove`: $($_.Exception.Message)"
+                        }
                     }
                 }
             }
