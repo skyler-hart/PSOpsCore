@@ -10,6 +10,8 @@
     CompatiblePSEditions = @('Core')
 
     FunctionsToExport = @(
+        'Deploy-PSOpsCore',
+        'Deploy-SkyPSTest',
         'Get-PSOpsCoreSecret',
         'Publish-PSOpsCore',
         'Publish-SkyPSTest',

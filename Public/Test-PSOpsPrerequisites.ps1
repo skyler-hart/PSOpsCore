@@ -1,4 +1,44 @@
 function Test-PSOpsPrerequisites {
+    <#
+    .SYNOPSIS
+        Tests whether required prerequisites for PSOpsCore are installed.
+
+    .DESCRIPTION
+        Validates that all required dependencies and tools for PSOpsCore module operation
+        are properly installed and accessible. This includes PowerShell version, 1Password CLI,
+        and .NET CLI components.
+
+    .EXAMPLE
+        Test-PSOpsPrerequisites
+        Checks all prerequisites and returns a detailed status report.
+
+    .EXAMPLE
+        Test-PSOpsPrerequisites | Where-Object { -not $_.Installed }
+        Shows only the prerequisites that are missing or not properly installed.
+
+    .EXAMPLE
+        $results = Test-PSOpsPrerequisites
+        $results | Format-Table -AutoSize
+        Stores results and displays them in a formatted table.
+
+    .INPUTS
+        None. This function does not accept pipeline input.
+
+    .OUTPUTS
+        PSCustomObject[]. Returns an array of objects with Name, Installed, and Detail properties
+        for each prerequisite checked.
+
+    .NOTES
+        Prerequisites checked:
+        - PowerShell 7 or higher
+        - 1Password CLI (op command)
+        - .NET CLI (dotnet command)
+
+        The function uses Test-PSOpsCommand to verify command availability.
+
+    .LINK
+        Test-PSOpsCommand
+    #>
     [CmdletBinding()]
     [OutputType([pscustomobject])]
     param()

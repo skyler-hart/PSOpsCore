@@ -6,10 +6,34 @@ function Publish-PSOpsCore {
     .DESCRIPTION
         Automatically locates the PSOpsCore module directory using Get-PSOpsDevFolder,
         then publishes it to the configured private PowerShell repository using 1Password secrets.
+        The function validates the module path exists, retrieves repository credentials from 1Password,
+        and performs the publish operation followed by verification steps.
 
     .EXAMPLE
         Publish-PSOpsCore
         Publishes the module from the automatically detected development folder.
+
+    .EXAMPLE
+        Publish-PSOpsCore -Verbose
+        Publishes the module with verbose output showing the module path and operations.
+
+    .INPUTS
+        None. This function does not accept pipeline input.
+
+    .OUTPUTS
+        None. This function provides console output about the publishing process.
+
+    .NOTES
+        Prerequisites:
+        - PSOpsCore module must exist in the detected development folder
+        - 1Password CLI must be installed and signed in
+        - Repository credentials must be configured in 1Password
+        - Microsoft.PowerShell.PSResourceGet module for publishing
+
+    .LINK
+        Get-PSOpsDevFolder
+    .LINK
+        Get-PSOpsCoreSecret
     #>
     [CmdletBinding()]
     param ()

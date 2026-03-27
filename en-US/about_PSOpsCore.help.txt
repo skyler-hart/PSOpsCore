@@ -2,14 +2,130 @@ TOPIC
     about_PSOpsCore
 
 SHORT DESCRIPTION
-    Overview of the PSOpsCore module.
+    Cross-platform PowerShell module for automation, secrets management, and publishing workflows.
 
 LONG DESCRIPTION
-    PSOpsCore is a cross-platform internal PowerShell module intended to provide
-    shared helper functions for secrets, publishing, and reusable automation
-    primitives.
+    PSOpsCore is a comprehensive cross-platform internal PowerShell module designed to provide
+    shared helper functions for secrets management, module publishing, repository management,
+    and reusable automation primitives across development workflows.
 
-    The module is designed to run on PowerShell 7+ across Windows, macOS,
-    Ubuntu, and Debian-based Linux distributions.
+    The module is designed to run on PowerShell 7+ across Windows, macOS, Ubuntu, and 
+    Debian-based Linux distributions. All functions automatically detect the platform and
+    adapt their behavior accordingly.
 
-    Secrets are retrieved at runtime through the 1Password CLI.
+    Key features:
+    - Secure secret retrieval through 1Password CLI integration
+    - Automated development folder detection across platforms
+    - PowerShell repository registration and management
+    - Module publishing workflows with verification
+    - Git repository batch operations
+    - Cross-platform prerequisite validation
+
+FUNCTIONS OVERVIEW
+
+    Get-PSOpsCoreSecret
+        Retrieves secrets from 1Password using the 1Password CLI with comprehensive 
+        error handling and validation.
+
+    Get-PSOpsDevFolder (Private)
+        Automatically detects the main development folder across different machines
+        and platforms by searching common patterns and locations.
+
+    Publish-PSOpsCore
+        Publishes the PSOpsCore module itself to a private PowerShell repository
+        using automatically detected paths and 1Password secrets.
+
+    Publish-SNPlatformToolsDev
+        Publishes the SNPlatformTools-Dev module to a private PowerShell repository
+        with automatic path detection and 1Password integration.
+
+    Publish-SkyPSTest
+        Publishes the SkyPSTest module to a private PowerShell repository
+        with automatic path detection and 1Password integration.
+
+    Register-PSOpsCoreRepo
+        Registers PowerShell resource repositories with automatic 1Password 
+        configuration retrieval and standalone operation capability.
+
+    Test-PSOpsPrerequisites
+        Validates that all required dependencies and tools are properly installed,
+        including PowerShell version, 1Password CLI, and .NET CLI components.
+
+    Update-GitRepos
+        Updates all Git repositories found in the development folder or specified path
+        by performing git fetch and pull operations with parallel processing.
+
+PREREQUISITES
+    - PowerShell 7.0 or higher
+    - 1Password CLI (op) installed and configured
+    - Git (for repository operations)
+    - .NET CLI (for some publishing operations)
+
+EXAMPLES
+
+    # Check if all prerequisites are installed
+    Test-PSOpsPrerequisites
+
+    # Register the default PowerShell repository
+    Register-PSOpsCoreRepo
+
+    # Update all Git repositories in your development folder
+    Update-GitRepos
+
+    # Publish the PSOpsCore module
+    Publish-PSOpsCore
+
+    # Get a secret from 1Password
+    Get-PSOpsCoreSecret -Path 'op://DevOps/API Key/password'
+
+CONFIGURATION
+    The module uses 1Password for secure configuration storage. Key secrets are stored at:
+    
+    Repository Configuration:
+    - op://DevOps/PSResource Repository - PKGS-H/repoName
+    - op://DevOps/PSResource Repository - PKGS-H/repoUri  
+    - op://DevOps/PSResource Repository - PKGS-H/password
+
+    Development Folder Detection:
+    The module automatically detects development folders by searching for common patterns:
+    - Windows: %USERPROFILE%, %USERPROFILE%\Documents, C:\dev, D:\projects
+    - macOS/Linux: $HOME, $HOME/Documents, /usr/local/dev, /opt/dev
+    - Common folder names: VSCode, VS_Code, dev, development, projects, code, repos
+
+PLATFORM SUPPORT
+    The module provides consistent functionality across:
+    - Windows (PowerShell 7+)
+    - macOS (PowerShell 7+)  
+    - Linux (PowerShell 7+)
+
+    Platform detection is handled automatically by Get-PSOpsPlatform (private function).
+
+SECURITY
+    - All sensitive data is stored in 1Password and retrieved at runtime
+    - No hardcoded credentials or API keys in the module
+    - Secure secret retrieval with comprehensive error handling
+    - Repository operations use trusted repositories with API key authentication
+
+TROUBLESHOOTING
+    Common issues and solutions:
+
+    1Password CLI not found:
+        Install 1Password CLI and ensure it's in your PATH. Sign in using 'op signin'.
+
+    Development folder not detected:
+        Use Get-PSOpsDevFolder -CustomPaths to specify custom search locations,
+        or use -IncludeSubdirectories to search in common subdirectories.
+
+    Module publishing fails:
+        Ensure you have appropriate permissions and the target repository is registered.
+        Verify 1Password secrets are configured correctly.
+
+    Git operations fail:
+        Ensure Git is installed and repositories are properly initialized.
+        Check that you have appropriate permissions for the repositories.
+
+SEE ALSO
+    Get-Help Get-PSOpsCoreSecret
+    Get-Help Test-PSOpsPrerequisites
+    Get-Help Update-GitRepos
+    Get-Help Register-PSOpsCoreRepo
