@@ -51,10 +51,13 @@ function Remove-PSOpsCorePackage {
         Prerequisites:
         - BaGet server must be accessible and running
         - 1Password CLI must be installed and signed in
-        - Appropriate API key permissions for package management
+        - API key must have package deletion permissions
+        - Package deletion must be enabled in BaGet configuration
         - PowerShell 7+ for cross-platform REST API support
 
         The function uses the BaGet REST API endpoints for package management.
+        If you get HTTP 401 errors, check that your API key has delete permissions
+        and that BaGet is configured to allow package deletion.
         Use -WhatIf to preview actions before executing.
 
     .LINK
@@ -114,10 +117,9 @@ function Remove-PSOpsCorePackage {
             Write-Verbose "Package: $PackageName"
             if ($Version) { Write-Verbose "Version: $Version" }
 
-            # Prepare headers for API authentication
+            # Prepare headers for API authentication (DELETE requests don't need Content-Type)
             $headers = @{
                 'X-API-Key' = $ApiKey
-                'Content-Type' = 'application/json'
             }
 
             # First, check if package exists using the correct BaGet registration API
@@ -140,20 +142,26 @@ function Remove-PSOpsCorePackage {
                 @($Version)
             } else {
                 # Extract versions from BaGet registration API response
-                $allVersions = @()
+                $allVersions = [System.Collections.Generic.List[string]]::new()
+                
                 if ($packageInfo.items) {
                     foreach ($item in $packageInfo.items) {
                         if ($item.items) {
-                            $allVersions += $item.items | ForEach-Object { $_.catalogEntry.version }
+                            foreach ($subItem in $item.items) {
+                                if ($subItem.catalogEntry -and $subItem.catalogEntry.version) {
+                                    $allVersions.Add($subItem.catalogEntry.version)
+                                }
+                            }
                         }
                     }
-                } elseif ($packageInfo.catalogEntry) {
-                    $allVersions += $packageInfo.catalogEntry.version
+                } elseif ($packageInfo.catalogEntry -and $packageInfo.catalogEntry.version) {
+                    $allVersions.Add($packageInfo.catalogEntry.version)
                 }
-                $allVersions | Sort-Object -Unique
+                
+                $allVersions.ToArray() | Sort-Object -Unique
             }
 
-            if (-not $versionsToRemove -or $versionsToRemove.Count -eq 0) {
+            if (-not $versionsToRemove -or $versionsToRemove.Length -eq 0) {
                 throw "No versions found for package '$PackageName'"
             }
 
@@ -161,7 +169,7 @@ function Remove-PSOpsCorePackage {
             $actionDescription = if ($Version) {
                 "Remove version $Version of package '$PackageName'"
             } else {
-                "Remove ALL $($versionsToRemove.Count) versions of package '$PackageName'"
+                "Remove ALL $($versionsToRemove.Length) versions of package '$PackageName'"
             }
 
             if (-not $Force -and -not $PSCmdlet.ShouldProcess($PackageName, $actionDescription)) {
@@ -176,62 +184,63 @@ function Remove-PSOpsCorePackage {
 
             Write-Host $actionDescription -ForegroundColor Cyan
 
-            # Remove each version using the correct BaGet delete API
+            # Remove each version using BaGet's delete API
             $results = @()
             foreach ($versionToRemove in $versionsToRemove) {
-                # BaGet typically uses /api/v2/package/{id}/{version} for deletions
+                # BaGet uses /api/v2/package/{id}/{version} for deletions (DELETE method)
+                # Note: BaGet defaults to "unlisting" packages rather than hard deletion
                 $deleteUri = "$baseUri/api/v2/package/$($PackageName.ToLower())/$versionToRemove"
                 
                 if ($PSCmdlet.ShouldProcess("$PackageName v$versionToRemove", "DELETE $deleteUri")) {
                     try {
                         Write-Host "Removing $PackageName v$versionToRemove..." -ForegroundColor Yellow
                         Write-Verbose "DELETE endpoint: $deleteUri"
+                        Write-Verbose "Request headers: X-API-Key = [REDACTED]"
                         
+                        # BaGet delete endpoint - returns 204 (NoContent) on success, 404 if not found
                         $response = Invoke-RestMethod -Uri $deleteUri -Method Delete -Headers $headers -ErrorAction Stop
                         
                         $results += [PSCustomObject]@{
                             PackageName = $PackageName
                             Version = $versionToRemove
                             Status = 'Success'
-                            Message = "Package removed successfully"
+                            Message = "Package unlisted/removed successfully"
                         }
                         
                         Write-Host "✓ Successfully removed $PackageName v$versionToRemove" -ForegroundColor Green
                     }
                     catch {
-                        # Try alternative delete endpoint if first one fails
-                        $alternateDeleteUri = "$baseUri/api/v1/packages/$($PackageName.ToLower())/$versionToRemove"
-                        Write-Verbose "Trying alternate DELETE endpoint: $alternateDeleteUri"
+                        $errorMessage = $_.Exception.Message
+                        $statusCode = $null
                         
-                        try {
-                            $response = Invoke-RestMethod -Uri $alternateDeleteUri -Method Delete -Headers $headers -ErrorAction Stop
+                        if ($_.Exception.Response) {
+                            $statusCode = [int]$_.Exception.Response.StatusCode
+                            $errorMessage = "HTTP $statusCode - $errorMessage"
                             
-                            $results += [PSCustomObject]@{
-                                PackageName = $PackageName
-                                Version = $versionToRemove
-                                Status = 'Success'
-                                Message = "Package removed successfully (alternate endpoint)"
+                            # Provide helpful guidance for common errors
+                            if ($statusCode -eq 401) {
+                                $errorMessage += "`nThis usually means the API key lacks delete permissions or package deletion is disabled in BaGet."
                             }
-                            
-                            Write-Host "✓ Successfully removed $PackageName v$versionToRemove (alternate endpoint)" -ForegroundColor Green
-                        }
-                        catch {
-                            $results += [PSCustomObject]@{
-                                PackageName = $PackageName
-                                Version = $versionToRemove
-                                Status = 'Failed'
-                                Message = $_.Exception.Message
+                            elseif ($statusCode -eq 404) {
+                                $errorMessage += "`nThe package version may not exist or may already have been removed."
                             }
-                            
-                            Write-Error "✗ Failed to remove $PackageName v$versionToRemove`: $($_.Exception.Message)"
                         }
+                        
+                        $results += [PSCustomObject]@{
+                            PackageName = $PackageName
+                            Version = $versionToRemove
+                            Status = 'Failed'
+                            Message = $errorMessage
+                        }
+                        
+                        Write-Error "✗ Failed to remove $PackageName v$versionToRemove`: $errorMessage"
                     }
                 }
             }
 
             # Summary
-            $successCount = ($results | Where-Object Status -eq 'Success').Count
-            $failureCount = ($results | Where-Object Status -eq 'Failed').Count
+            $successCount = @($results | Where-Object Status -eq 'Success').Count
+            $failureCount = @($results | Where-Object Status -eq 'Failed').Count
             
             Write-Host "`nRemoval Summary:" -ForegroundColor Cyan
             Write-Host "  Package: $PackageName" -ForegroundColor White
@@ -244,7 +253,7 @@ function Remove-PSOpsCorePackage {
                 PackageName = $PackageName
                 Repository = $Repository
                 ServerUri = $baseUri
-                TotalVersions = $versionsToRemove.Count
+                TotalVersions = $versionsToRemove.Length
                 SuccessCount = $successCount
                 FailureCount = $failureCount
                 Results = $results
