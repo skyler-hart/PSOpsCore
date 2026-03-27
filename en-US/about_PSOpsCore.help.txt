@@ -1,0 +1,15 @@
+TOPIC
+    about_PSOpsCore
+
+SHORT DESCRIPTION
+    Overview of the PSOpsCore module.
+
+LONG DESCRIPTION
+    PSOpsCore is a cross-platform internal PowerShell module intended to provide
+    shared helper functions for secrets, publishing, and reusable automation
+    primitives.
+
+    The module is designed to run on PowerShell 7+ across Windows, macOS,
+    Ubuntu, and Debian-based Linux distributions.
+
+    Secrets are retrieved at runtime through the 1Password CLI.
