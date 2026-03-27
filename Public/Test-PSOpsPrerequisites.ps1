@@ -30,7 +30,7 @@ function Test-PSOpsPrerequisites {
 
     .NOTES
         Prerequisites checked:
-        - PowerShell 7 or higher
+        - PowerShell 5.1+ (both Desktop and Core editions supported)
         - 1Password CLI (op command)
         - .NET CLI (dotnet command)
 
@@ -43,12 +43,14 @@ function Test-PSOpsPrerequisites {
     [OutputType([pscustomobject])]
     param()
 
-    $results = [System.Collections.Generic.List[object]]::new()
+    $results = New-PSOpsCompatibleList
+    $psInfo = Get-PSVersion
 
     $results.Add([pscustomobject]@{
-        Name      = 'PowerShell 7+'
-        Installed = $PSVersionTable.PSVersion.Major -ge 7
-        Detail    = $PSVersionTable.PSVersion.ToString()
+        Name      = 'PowerShell 5.1+ (Desktop/Core)'
+        Installed = ($PSVersionTable.PSVersion.Major -gt 5) -or 
+                   ($PSVersionTable.PSVersion.Major -eq 5 -and $PSVersionTable.PSVersion.Minor -ge 1)
+        Detail    = "$($PSVersionTable.PSVersion) ($($PSVersionTable.PSEdition) Edition)"
     })
 
     $results.Add([pscustomobject]@{

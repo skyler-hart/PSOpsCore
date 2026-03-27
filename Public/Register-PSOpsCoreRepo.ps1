@@ -51,9 +51,18 @@ function Register-PSOpsCoreRepo {
         # Standalone mode: Define functions if not available
         if ($Standalone -or -not (Get-Command Get-PSOpsPlatform -ErrorAction SilentlyContinue)) {
             function Get-PSOpsPlatform {
-                if ($IsWindows) { return 'Windows' }
-                if ($IsMacOS)   { return 'macOS' }
-                if ($IsLinux)   { return 'Linux' }
+                # PowerShell 6.0+ has automatic platform variables
+                if ($PSVersionTable.PSVersion.Major -ge 6) {
+                    if ($IsWindows) { return 'Windows' }
+                    if ($IsMacOS)   { return 'macOS' }
+                    if ($IsLinux)   { return 'Linux' }
+                }
+                else {
+                    # PowerShell 5.1 and earlier (Windows PowerShell) - Windows only
+                    if ($PSVersionTable.PSEdition -eq 'Desktop' -or $env:OS -eq 'Windows_NT') {
+                        return 'Windows'
+                    }
+                }
                 return 'Unknown'
             }
         }

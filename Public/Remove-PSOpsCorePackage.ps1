@@ -53,7 +53,7 @@ function Remove-PSOpsCorePackage {
         - 1Password CLI must be installed and signed in
         - API key must have package deletion permissions
         - Package deletion must be enabled in BaGet configuration
-        - PowerShell 7+ for cross-platform REST API support
+        - PowerShell 5.1+ (compatible with both Desktop and Core editions)
 
         The function uses the BaGet REST API endpoints for package management.
         If you get HTTP 401 errors, check that your API key has delete permissions
@@ -128,7 +128,7 @@ function Remove-PSOpsCorePackage {
             Write-Host "Checking package existence at: $packageInfoUri" -ForegroundColor Yellow
             
             try {
-                $packageInfo = Invoke-RestMethod -Uri $packageInfoUri -Method Get -ErrorAction Stop
+                $packageInfo = Invoke-PSOpsRestMethod -Uri $packageInfoUri -Method Get -ErrorAction Stop
             }
             catch {
                 if ($_.Exception.Response.StatusCode -eq 'NotFound') {
@@ -142,7 +142,7 @@ function Remove-PSOpsCorePackage {
                 @($Version)
             } else {
                 # Extract versions from BaGet registration API response
-                $allVersions = [System.Collections.Generic.List[string]]::new()
+                $allVersions = New-PSOpsCompatibleList
                 
                 if ($packageInfo.items) {
                     foreach ($item in $packageInfo.items) {
@@ -158,6 +158,7 @@ function Remove-PSOpsCorePackage {
                     $allVersions.Add($packageInfo.catalogEntry.version)
                 }
                 
+                # Convert to array and sort
                 $allVersions.ToArray() | Sort-Object -Unique
             }
 
@@ -198,7 +199,7 @@ function Remove-PSOpsCorePackage {
                         Write-Verbose "Request headers: X-API-Key = [REDACTED]"
                         
                         # BaGet delete endpoint - returns 204 (NoContent) on success, 404 if not found
-                        $response = Invoke-RestMethod -Uri $deleteUri -Method Delete -Headers $headers -ErrorAction Stop
+                        $response = Invoke-PSOpsRestMethod -Uri $deleteUri -Method Delete -Headers $headers -ErrorAction Stop
                         
                         $results += [PSCustomObject]@{
                             PackageName = $PackageName

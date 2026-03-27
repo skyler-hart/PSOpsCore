@@ -16,19 +16,29 @@ The repository is public, but secrets are never stored in the repository. Secret
 
 ### PowerShell
 
-PSOpsCore targets **PowerShell 7+**.
+PSOpsCore supports both **PowerShell 5.1 (Windows PowerShell)** and **PowerShell 7+ (PowerShell Core)**.
+
+- **PowerShell 5.1**: Windows-only functionality with full module compatibility
+- **PowerShell 7+**: Full cross-platform support (Windows, macOS, Linux)
 
 Check your version:
 
 ```powershell
 $PSVersionTable.PSVersion
+$PSVersionTable.PSEdition  # Shows 'Desktop' (5.1) or 'Core' (6+)
 ```
+
+#### For PowerShell 7+ (Cross-Platform)
 
 If needed, install PowerShell from the official docs:
 
 - [Install PowerShell on Windows](https://learn.microsoft.com/powershell/scripting/install/installing-powershell-on-windows)
 - [Install PowerShell on macOS](https://learn.microsoft.com/powershell/scripting/install/installing-powershell-on-macos)
 - [Install PowerShell on Linux](https://learn.microsoft.com/powershell/scripting/install/installing-powershell-on-linux)
+
+#### For PowerShell 5.1 (Windows PowerShell)
+
+PowerShell 5.1 comes pre-installed on Windows 10/11 and Windows Server 2016+. The module will automatically detect the version and provide Windows-only functionality.
 
 ### 1Password CLI
 
@@ -112,6 +122,37 @@ Clone the repo, then from the repository root:
 ```powershell
 Import-Module ./PSOpsCore.psd1 -Force
 Test-PSOpsPrerequisites
+```
+
+## Compatibility
+
+PSOpsCore automatically detects the PowerShell version and adapts its behavior accordingly:
+
+### PowerShell 5.1 (Windows PowerShell)
+- **Platform**: Windows only
+- **Features**: Full module functionality with Windows-specific paths
+- **Limitations**: No cross-platform features (Get-PSOpsPlatform returns 'Windows')
+- **REST API**: Uses compatibility layer for consistent behavior
+
+### PowerShell 7+ (PowerShell Core)
+- **Platform**: Windows, macOS, Linux
+- **Features**: Full cross-platform functionality
+- **Advanced**: Modern PowerShell features, improved REST API support
+- **Performance**: Better array handling and generic collections
+
+### Version Detection
+
+You can check PowerShell compatibility in your scripts:
+
+```powershell
+$psInfo = Get-PSVersion
+if ($psInfo.IsCore) {
+    # Use PowerShell Core features
+    Write-Host "Running on PowerShell Core $($psInfo.Version)"
+} else {
+    # Use PowerShell 5.1 compatible features
+    Write-Host "Running on Windows PowerShell $($psInfo.Version)"
+}
 ```
 
 ## Example usage
