@@ -11,7 +11,7 @@
 
     FunctionsToExport = @(
         'Get-PSOpsCoreSecret',
-        'Publish-PSOpsPackage',
+        'Publish-PSOpsCore',
         'Test-PSOpsPrerequisites',
         'Update-GitRepos'
     )
@@ -24,8 +24,8 @@
     PrivateData = @{
         PSData = @{
             Tags         = @('PowerShell', 'CrossPlatform', 'Automation', 'Internal')
-            ProjectUri   = 'https://github.com/REPLACE_WITH_YOUR_ORG_OR_USER/PSOpsCore'
-            LicenseUri   = 'https://github.com/REPLACE_WITH_YOUR_ORG_OR_USER/PSOpsCore/blob/main/LICENSE'
+            ProjectUri   = 'https://github.com/skyler-hart/PSOpsCore'
+            LicenseUri   = 'https://github.com/skyler-hart/PSOpsCore/blob/main/LICENSE'
             ReleaseNotes = 'Initial scaffold.'
         }
     }
