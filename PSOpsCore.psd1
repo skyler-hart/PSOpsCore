@@ -12,6 +12,7 @@
     FunctionsToExport = @(
         'Get-PSOpsCoreSecret',
         'Publish-PSOpsCore',
+        'Publish-SNPlatformToolsDev',
         'Register-PSOpsCoreRepo',
         'Test-PSOpsPrerequisites',
         'Update-GitRepos'
