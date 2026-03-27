@@ -18,6 +18,7 @@
         'Publish-SNPlatformToolsDev',
         'Register-PSOpsCoreRepo',
         'Remove-PSOpsCorePackage',
+        'Remove-PSOpsOldPackages',
         'Test-PSOpsPrerequisites',
         'Update-GitRepos'
     )
