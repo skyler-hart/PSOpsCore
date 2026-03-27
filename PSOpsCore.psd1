@@ -1,6 +1,6 @@
 @{
     RootModule           = 'PSOpsCore.psm1'
-    ModuleVersion        = '0.1.0'
+    ModuleVersion        = '0.2.0'
     GUID                 = '6e730f3c-f67b-4d44-8fa9-0c14cbacdc39'
     Author               = 'Skyler Hart'
     CompanyName          = 'Skyler Hart'
